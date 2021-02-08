@@ -1,65 +1,42 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import Head from "next/head";
+import styles from "../styles/Home.module.css";
+import { useQuery } from "@apollo/client";
+import GET_MEMBERS from "../lib/queries/getMembers";
+import { initializeApollo } from "../lib/apollo";
+import Members from "./components/Members";
+import Image from "next/image";
+// const client = ...
 
 export default function Home() {
+  const { data, error, loading } = useQuery(GET_MEMBERS);
+
+  if (loading) return <h1>Loading...</h1>;
+
+  if (error || !data) return <h2>Error</h2>;
+  if (data === 0) return <h2>404 | Not Found</h2>;
+
+  console.log(data.members);
+
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+    <div className="bg-gray-100 min-h-screen">
+      <div className="container mx-auto space-y-4 p-4">
+        <h1 className="text-8xl text-center">Kin Spaces</h1>
+        <div className="flex justify-center  ">
+          {" "}
+          <div className="text-2xl">
+            {" "}
+            <Members data={data} error={error} loading={loading} />
+          </div>
         </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
+      </div>
     </div>
-  )
+  );
 }
+
+export const getStaticProps = async () => {
+  const apolloClient = initializeApollo();
+  await apolloClient.query({
+    query: GET_MEMBERS,
+  });
+  return { props: { initialApolloState: apolloClient.cache.extract() } };
+};
